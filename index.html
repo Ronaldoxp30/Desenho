@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desenho em Tempo Real</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .toolbar button, .toolbar input, .toolbar select {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        #canvas {
+            border: 1px solid #000;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <input type="color" id="colorPicker" value="#000000">
+        <select id="toolSelector">
+            <option value="pencil">Lápis</option>
+            <option value="brush">Pincel</option>
+            <option value="eraser">Borracha</option>
+        </select>
+        <input type="range" id="toolSize" min="1" max="50" value="5">
+        <button id="clearButton">Limpar</button>
+    </div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let drawing = false;
+        let brushColor = '#000000';
+        let toolSize = 5;
+        let currentTool = 'pencil';
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchmove', draw);
+
+        document.getElementById('colorPicker').addEventListener('change', (e) => {
+            brushColor = e.target.value;
+        });
+
+        document.getElementById('toolSelector').addEventListener('change', (e) => {
+            currentTool = e.target.value;
+        });
+
+        document.getElementById('toolSize').addEventListener('change', (e) => {
+            toolSize = e.target.value;
+        });
+
+        document.getElementById('clearButton').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        function startDrawing(e) {
+            e.preventDefault();
+            drawing = true;
+            draw(e);
+        }
+
+        function stopDrawing(e) {
+            e.preventDefault();
+            drawing = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!drawing) return;
+            
+            e.preventDefault();
+
+            let x, y;
+            if (e.type.includes('touch')) {
+                const touch = e.touches[0];
+                x = touch.clientX - canvas.offsetLeft;
+                y = touch.clientY - canvas.offsetTop;
+            } else {
+                x = e.clientX - canvas.offsetLeft;
+                y = e.clientY - canvas.offsetTop;
+            }
+
+            ctx.lineWidth = toolSize;
+            ctx.lineCap = 'round';
+
+            if (currentTool === 'eraser') {
+                ctx.strokeStyle = '#ffffff';
+            } else {
+                ctx.strokeStyle = brushColor;
+            }
+
+            if (currentTool === 'brush') {
+                ctx.lineWidth = toolSize * 2;
+            }
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+    </script>
+</body>
+</html>
